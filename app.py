@@ -1,13 +1,13 @@
 """
 Main entry point for running the service, through command line or mod_wsgi.
 """
-from http import HTTPStatus
 from os import getenv
 
 from flask import Flask, jsonify
+from views.main import MAIN_BLUEPRINT
+
 
 application = Flask(__name__)
-application.registry = registry.initialize()
 
 def construct_error_json(error_code, message):
     response = jsonify({"error": message})
@@ -15,22 +15,22 @@ def construct_error_json(error_code, message):
     return response
 
 
-@application.errorhandler(HTTPStatus.BAD_REQUEST)  # 400
-@application.errorhandler(HTTPStatus.UNAUTHORIZED)  # 401
-@application.errorhandler(HTTPStatus.FORBIDDEN)  # 403
-@application.errorhandler(HTTPStatus.INTERNAL_SERVER_ERROR)  # 500
-def bad_request_handler(error):
-    """This exception handler is used to respond via JSON
-    rather than a regular HTML encoded exception"""
-    print(error)
-    return construct_error_json(error.code, error.description)
+# @application.errorhandler(HTTPStatus.BAD_REQUEST)  # 400
+# @application.errorhandler(HTTPStatus.UNAUTHORIZED)  # 401
+# @application.errorhandler(HTTPStatus.FORBIDDEN)  # 403
+# @application.errorhandler(HTTPStatus.INTERNAL_SERVER_ERROR)  # 500
+# def bad_request_handler(error):
+#     """This exception handler is used to respond via JSON
+#     rather than a regular HTML encoded exception"""
+#     print(error)
+#     return construct_error_json(error.code, error.description)
 
 
 def destroy():
     """
     Shutdown the service gracefully, cleaning up resources created in init().
     """
-    LOG.info("Stopping server")
+    print("Stopping server")
 
 
 if __name__ == "__main__":
@@ -49,8 +49,9 @@ if __name__ == "__main__":
     only_on_localhost = "localhost"
     on_entire_network = "0.0.0.0"
 
-    LOG.info("Serving on: http://localhost:5090")
-    application.run(on_entire_network, 5090)
+    print("Serving on: http://localhost:9000")
+    application.register_blueprint(MAIN_BLUEPRINT)
+    application.run(on_entire_network, 9000)
 
     destroy()
 
