@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    image: openface
+    ports:
+      # - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - /Users/kwang/Documents/faces/raf-compare:/root/openface/k_photos
+      - .:/root/openface
+      - ./demos:/root/openface/livedemos
+    stdin_open: true
+    tty: true
