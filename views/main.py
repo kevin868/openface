@@ -37,7 +37,7 @@ def getRep(fileStream):
     if args.verbose:
         print("  + Face alignment took {} seconds.".format(time.time() - start))
     
-    write_img(alignedFace, filename)
+    # write_img(alignedFace, filename)
     start = time.time()
     rep = net.forward(alignedFace)
     if args.verbose:
@@ -45,9 +45,16 @@ def getRep(fileStream):
     return rep
 
 def write_img(img_array, filename):
-    outfile = filename_without_ext(filename) + "_align."  + filename.split(".")[1]
+    file_parts = filename.split(".")
+    outfile = file_parts[0] + "_align"
+    # Append extension if exists
+    if len(file_parts) > 1:
+        outfile += "." + file_parts[1]
     SAVE_DIR = "k_photos/aligned/"
+    ## Note, above is misguided. we MUST have an extension, for imwrite to choose format
     cv2.imwrite(SAVE_DIR + outfile, img_array)
+    if args.verbose:
+        print("  Saving aligned face to: {}".format(outfile))
 
 @MAIN_BLUEPRINT.route("/health", methods=["GET"])
 def get_health():
@@ -57,12 +64,13 @@ def get_health():
     Returns:
         Health status of the service
     """
-    print 'health'
+    print('health')
     return "OK"
 
 
 @MAIN_BLUEPRINT.route("/post_imgs", methods=["POST", "OPTIONS"])
 def post_images():
+    request_start = time.time()
     if request.method == "OPTIONS": # CORS preflight
         return _build_cors_preflight_response()
     elif request.method == "POST": # The actual request following the preflight
@@ -71,14 +79,20 @@ def post_images():
         print(imgs_list)
         try:
             result = get_distances(imgs_list)
+            log_results(result, request, request_start)
         except Exception as e:
-            print("Error:")
+            # print("Error:")
             print(" ** Exception: {}".format(str(e)))
-            return _corsify_actual_response("Error: {}".format(str(e)), 400)
-        output = {"msg": result}
+            log_error(request, request_start, e)
+            # TODO: return dict of {"error": str(e)}
+            return _corsify_actual_response({"error": str(e)}, 400)
+        output = {"resultsArray": result}
         return _corsify_actual_response(output)
     else:
         raise RuntimeError("Weird - don't know how to handle method {}".format(request.method))
+
+def get_request_ip(request):
+    return request.headers.get('x-forwarded-for', request.remote_addr)
 
 def _build_cors_preflight_response():
     """Handles preflight response (OPTIONS)"""
@@ -108,20 +122,50 @@ def get_distances(img_list):
     rep2 = getRep(img2)
     d = rep1 - rep2
     norm_12 = norm(d)
-    print "==Norm: " + norm(d)
-    file1 = filename_without_ext(img1.filename)
-    file2 = filename_without_ext(img2.filename)
+    file1 = img1.filename
+    file2 = img2.filename
+    print("==Norm: " + norm(d) + ",{},{}".format(file1,file2))
     result = [(file1, file2, norm_12)]
     if len(img_list) == 3:
         img3 = img_list[2]
         rep3 = getRep(img3)
         d_13 = rep1 - rep3
         d_23 = rep2 - rep3
-        file3 = filename_without_ext(img3.filename)
+        file3 = img3.filename
         result.append((file1, file3, norm(d_13)))
         result.append((file2, file3, norm(d_23)))
+        print("==Norm 2: " + str(result[1]))
+        print("==Norm 3: " + str(result[2]))
     return result
 
+LOG_FILE = "kevin_openface_log.txt"
+
+def log_results(result, request, start_time):
+    logfile = open(LOG_FILE, "a")  # append mode
+    ip_string = get_request_ip(request)
+    iso_time = time.strftime('%Y-%m-%d %H:%M:%S %Z',time.gmtime(start_time))
+    time_elapsed = "{:.3f}".format(time.time() - start_time)
+    # Output: Timestamp, time to result computed, IP, Image 1, Image 2, Norm
+    # or a longer result if comparing 3 files
+    tup_string = ""
+    for tup in result:
+        tup_string += "{},{},{}".format(*tup)
+    logfile.write(",".join([iso_time, time_elapsed, ip_string, tup_string]) + "\n")
+    logfile.close()
+    return result
+
+def log_error(request, start_time, exc):
+    logfile = open(LOG_FILE, "a")  # append mode 
+    ip_string = get_request_ip(request)
+    iso_time = time.strftime('%Y-%m-%d %H:%M:%S %Z',time.gmtime(start_time))
+    time_elapsed = "{:.3f}".format(time.time() - start_time)
+    # Output: Timestamp, time to result computed, IP, Image 1, Image 2, Norm
+    # or a longer result if comparing 3 files
+    # tup_string = ""
+    # for tup in result:
+    #     tup_string += "{},{},{}".format(*tup)
+    logfile.write(",".join([iso_time, time_elapsed, ip_string, "Exception: " + str(exc)]) + "\n")
+    logfile.close()
 
 def norm(array):
     """Norm of array formatted to 3 digits"""

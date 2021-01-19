@@ -48,7 +48,7 @@ parser.add_argument('--imgDim', type=int,
                     help="Default image dimension.", default=96)
 parser.add_argument('--verbose', action='store_false')
 
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 print("Starting using config: ")
 print(args)

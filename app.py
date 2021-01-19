@@ -49,9 +49,9 @@ if __name__ == "__main__":
     only_on_localhost = "localhost"
     on_entire_network = "0.0.0.0"
 
-    print("Serving on: http://localhost:9000")
+    print("Serving on: http://localhost:8089")
     application.register_blueprint(MAIN_BLUEPRINT)
-    application.run(on_entire_network, 9000)
+    application.run(on_entire_network, 8089)
 
     destroy()
 

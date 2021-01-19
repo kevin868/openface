@@ -31,5 +31,6 @@ RUN cd ~/openface && \
     pip2 install --user --ignore-installed -r demos/web/requirements.txt && \
     pip2 install -r training/requirements.txt
 
-EXPOSE 8000 9000
-CMD /bin/bash -l -c '/root/openface/demos/web/start-servers.sh'
+EXPOSE 8089
+# CMD /bin/bash -l -c '/root/openface/demos/web/start-servers.sh'
+CMD ["/bin/bash", "gunicorn" ,"-b", "0.0.0.0:8089", "~/openface/wsgi:application"]
