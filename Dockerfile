@@ -23,14 +23,17 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ADD . /root/openface
-RUN python -m pip install --upgrade --force pip
+# RUN python -m pip install --upgrade --force pip
+RUN python -m pip install --upgrade "pip < 19.1"
 RUN cd ~/openface && \
-    ./models/get-models.sh && \
+    # ./models/get-models.sh && \
+    python -V && \
     pip2 install -r requirements.txt && \
-    python2 setup.py install && \
-    pip2 install --user --ignore-installed -r demos/web/requirements.txt && \
-    pip2 install -r training/requirements.txt
+    python2 setup.py install
+    # python2 setup.py install && \
+    # pip2 install --user --ignore-installed -r demos/web/requirements.txt && \
+    # pip2 install -r training/requirements.txt
 
 EXPOSE 8089
 # CMD /bin/bash -l -c '/root/openface/demos/web/start-servers.sh'
-CMD ["/bin/bash", "gunicorn" ,"-b", "0.0.0.0:8089", "~/openface/wsgi:application"]
+CMD ["/bin/bash", "-l", "-c", "cd /root/openface/ && gunicorn -b 0.0.0.0:8089  -c gunicorn.conf.py wsgi:application"]

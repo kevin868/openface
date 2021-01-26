@@ -3,11 +3,12 @@ services:
   web:
     build: .
     image: openface
+    # mem_limit: 1G # Local testing
+    # mem_limit: 800M
     ports:
       # - "8000:8000"
       - "8089:8089"
     volumes:
-      # - /Users/kwang/Documents/faces/raf-compare:/root/openface/k_photos
       - .:/root/openface
     stdin_open: true
     tty: true

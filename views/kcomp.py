@@ -66,11 +66,3 @@ if args.verbose:
 
 def filename_without_ext(input):
     return input.split(".")[0]
-
-# for (img1, img2) in itertools.combinations(args.imgs, 2):
-#     d = getRep(img1) - getRep(img2)
-    
-#     # print("Comparing {} with {}.".format(img1, img2) + " Dist: {:0.3f}".format(np.dot(d, d)))
-#     print("{} | {} | {:0.4f}".format(filename_without_ext(img1), filename_without_ext(img2), np.dot(d, d)))
-#     # print(
-#     #     "  + Squared l2 distance between representations: {:0.3f}".format(np.dot(d, d)))
