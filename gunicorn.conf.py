@@ -8,3 +8,5 @@ workers = num_cores * 2 + 1
 workers = min(3, workers)
 
 # workers = 4
+certfile = "certificate.crt"
+keyfile = "private.key"
