@@ -7,7 +7,7 @@ from flask import Flask, jsonify
 from views.main import MAIN_BLUEPRINT
 
 
-application = Flask(__name__)
+application = Flask(__name__, static_folder='static/')
 
 def construct_error_json(error_code, message):
     response = jsonify({"error": message})
